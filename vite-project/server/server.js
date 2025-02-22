@@ -85,6 +85,66 @@ app.delete("/api/planets/:id", (req, res) => {
   });
 });
 
+export const getAll = (req, res) => {
+  db.all("SELECT * FROM planets", (err, rows) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.json(rows);
+  });
+};
+
+export const getOneById = (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM planets WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!row) {
+      return res.status(404).json({ error: "Pianeta non trovato" });
+    }
+    res.status(200).json(row);
+  });
+};
+
+export const create = (req, res) => {
+  const { nome } = req.body;
+  db.run("INSERT INTO planets (nome) VALUES (?)", [nome], function (err) {
+    if (err) {
+      return res.status(500).json({ error: "Errore" });
+    }
+    res.status(201).json({ message: "Pianeta aggiunto", id: this.lastID });
+  });
+};
+
+export const updateById = (req, res) => {
+  const { id } = req.params;
+  const { nome } = req.body;
+
+  db.run(
+    "UPDATE planets SET nome = ? WHERE id = ?",
+    [nome, id],
+    function (err) {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "Errore durante l'aggiornamento" });
+      }
+      res.status(200).json({ msg: "Pianeta aggiornato con successo" });
+    }
+  );
+};
+
+export const deleteById = (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM planets WHERE id = ?", [id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: "Errore durante l'eliminazione" });
+    }
+    res.status(200).json({ msg: "Pianeta eliminato con successo" });
+  });
+};
+
 app.listen(PORT, () => {
   console.log(`server in ascolto su http://localhost:${PORT}`);
 });
